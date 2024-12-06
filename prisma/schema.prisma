@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "postgresql" // Banco de dados
+  url      = env("DATABASE_URL") // URL definida no arquivo .env
+}
+
+generator client {
+  provider = "prisma-client-js" // Geração do cliente Prisma
+}
+
+// Modelo User (Usuário)
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  blocked   Boolean  @default(false)
+  attempts  Int      @default(0)
+  producer  Producer? @relation("UserToProducer") // Relacionamento com Producer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo Producer (Produtor)
+model Producer {
+  id       Int      @id @default(autoincrement())
+  cpf      String   @unique
+  cnpj     String?  @unique
+  name     String
+  userId   Int?     @unique // FK para User
+  user     User?    @relation("UserToProducer", fields: [userId], references: [id]) // Relacionamento com User
+  farms    Farm[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo Farm (Fazenda)
+model Farm {
+  id                     Int       @id @default(autoincrement())
+  producerId             Int       // FK para Producer
+  orderDate              DateTime  // Data de criação
+  name                   String    // Nome da fazenda
+  city                   String    // Cidade
+  state                  String    // Estado
+  hectaresTotalArea      Float     // Área total em hectares
+  agriculturalTotalArea  Float     // Área agrícola
+  vegetationTotalArea    Float     // Área de vegetação
+  producer               Producer  @relation(fields: [producerId], references: [id]) // Relacionamento com Producer
+  plantedCrops           PlantedCrop[] // Relacionamento 1:N com PlantedCrop
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+// Modelo CropType (Tipo de Safra)
+model CropType {
+  id          Int          @id @default(autoincrement())
+  name        String       // Nome da safra
+  description String?      // Descrição opcional
+  plantedCrops PlantedCrop[] // Relacionamento 1:N com PlantedCrop
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// Modelo PlantedCrop (Safra Plantada)
+model PlantedCrop {
+  id              Int       @id @default(autoincrement())
+  farmId          Int       // FK para Farm
+  cropTypeId      Int       // FK para CropType
+  totalPlantedArea Float    // Área total plantada
+  farm            Farm      @relation(fields: [farmId], references: [id]) // Relacionamento com Farm
+  cropType        CropType  @relation(fields: [cropTypeId], references: [id]) // Relacionamento com CropType
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
