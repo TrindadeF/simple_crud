@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../index"; // Certifique-se de que o app é exportado do seu index.ts
+import app from "../index";
 
 describe("Auth API - Login", () => {
   it("deve retornar 404 se o e-mail não for encontrado", async () => {
