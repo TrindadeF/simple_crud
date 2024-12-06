@@ -18,3 +18,5 @@ app.use("/api", routes);
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+export default app;
