@@ -5,6 +5,7 @@ import {
   obterUsuario,
   atualizarUsuario,
   deletarUsuario,
+  login,
 } from "../controllers/userController";
 import { validateSchema } from "../middlewares/validateSchema";
 import { validateIdParam } from "../middlewares/validateIdParam";
@@ -25,5 +26,6 @@ router.put(
 );
 
 router.delete("/:id", validateIdParam, deletarUsuario);
+router.post("/login", login);
 
 export default router;

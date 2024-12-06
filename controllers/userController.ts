@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt";
@@ -117,23 +117,33 @@ export const deletarUsuario = async (
   }
 };
 
-export const loginUsuario = async (
+export const login = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   const { email, password } = req.body;
 
   try {
-    const usuario = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    if (!usuario || !(await bcrypt.compare(password, usuario.password))) {
-      res.status(401).json({ error: "Credenciais inválidas." });
+    if (!user) {
+      res.status(404).json({ error: "Usuário não encontrado" });
       return;
     }
 
-    const token = generateToken(usuario.id);
-    res.json({ message: "Login bem-sucedido.", token });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      res.status(401).json({ error: "Credenciais inválidas" });
+      return;
+    }
+
+    const token = generateToken(user.id);
+
+    res.json({ message: "Login realizado com sucesso", token });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao realizar login." });
+    next(error);
   }
 };
